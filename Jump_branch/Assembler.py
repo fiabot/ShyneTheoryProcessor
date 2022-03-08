@@ -98,6 +98,24 @@ def jump(operation, operands, opcode_dict):
     outstring += twosCom(0, ADDR_SIZE)
     return outstring
 
+def branch(operation, operands, opcode_dict):
+    outstring = opcode_dict[operation][1]
+
+    long_str = " ".join(operands)
+    if long_str.count("$") != 2:
+        print("SYNTAX ERROR")
+        return NOOP
+    # off
+    outstring += twosCom(operands[2], ADDR_SIZE)
+
+    # ra1
+    outstring += getBinRegister(operands[0][1:], ADDR_SIZE)
+
+    # ra2
+    outstring += getBinRegister(operands[1][1:], ADDR_SIZE)
+
+    return outstring
+
 def ConvertAssemblyToMachineCode(inline, opcode_dict):
     '''given a string corresponding to a line of assembly,
     strip out all the comments, parse it, and convert it into
@@ -114,12 +132,12 @@ def ConvertAssemblyToMachineCode(inline, opcode_dict):
     return outstring
 
 def opcodes():
-    opcode_dict = {'add': (r_inst, '000000'), "sub": (r_inst, "000011"), "or": (r_inst, "000010"),
-                   "and": (r_inst, "000001")}
-    immediates = {'addi': (i_inst, '010000'), 'subi': (i_inst, '010011'), 'ori': (i_inst, '010010'),
+    opcode_dict = {'add': (r_inst, '0000000'), "sub": (r_inst, "0000011"), "or": (r_inst, "0000010"),
+                   "and": (r_inst, "0000001")}
+    immediates = {'addi': (i_inst, '0100000'), 'subi': (i_inst, '0100011'), 'ori': (i_inst, '0100010'),
                   'andi': (i_inst, '010001')}
-    dm = {"lw": (dm_inst, "010100"), "sw": (dm_inst, "011000")}
-    branches = {"j" : (jump, "100000")}
+    dm = {"lw": (dm_inst, "0101000"), "sw": (dm_inst, "0110000")}
+    branches = {"j" : (jump, "1000000"), "beq" : (branch, "1000100"), "bne" : (branch, "1000101")}
     opcode_dict.update(immediates)
     opcode_dict.update(dm)
     opcode_dict.update(branches)
