@@ -73,8 +73,8 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Python.machineCodeCreator" />
       <item itemvalue="Python.Assembler" />
+      <item itemvalue="Python.machineCodeCreator" />
     </list>
   </component>
   <component name="SvnConfiguration">
@@ -135,9 +135,9 @@
       <screen x="0" y="0" width="1536" height="824" />
     </state>
     <state x="279" y="58" key="SettingsEditor/0.0.1536.824@0.0.1536.824" timestamp="1646510044501" />
-    <state x="477" y="240" key="com.intellij.ide.util.TipDialog" timestamp="1646506030009">
+    <state x="477" y="240" key="com.intellij.ide.util.TipDialog" timestamp="1646769401637">
       <screen x="0" y="0" width="1536" height="824" />
     </state>
-    <state x="477" y="240" key="com.intellij.ide.util.TipDialog/0.0.1536.824@0.0.1536.824" timestamp="1646506030009" />
+    <state x="477" y="240" key="com.intellij.ide.util.TipDialog/0.0.1536.824@0.0.1536.824" timestamp="1646769401637" />
   </component>
 </project>

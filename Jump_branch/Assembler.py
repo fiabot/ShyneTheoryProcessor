@@ -10,8 +10,8 @@ ADDR_SIZE = 4
 def twosCom(dec, length):
     dec = int(dec)
     if dec < 0:
-        max = 2 ** length - 1
-        dec = max - (-dec - 1)
+        max_num = 2 ** length - 1
+        dec = max_num - (-dec - 1)
     binary = bin(dec).replace("0b", "")
 
     if len(binary) > length:
@@ -106,11 +106,11 @@ def ConvertAssemblyToMachineCode(inline, opcode_dict):
     return outstring
 
 def opcodes():
-    opcode_dict = {'add': (r_inst, '00000'), "sub": (r_inst, "00011"), "or": (r_inst, "00010"),
-                   "and": (r_inst, "00001")}
-    immediates = {'addi': (i_inst, '10000'), 'subi': (i_inst, '10011'), 'ori': (i_inst, '10010'),
-                  'andi': (i_inst, '10001')}
-    dm = {"lw": (dm_inst, "10100"), "sw": (dm_inst, "11000")}
+    opcode_dict = {'add': (r_inst, '000000'), "sub": (r_inst, "000011"), "or": (r_inst, "000010"),
+                   "and": (r_inst, "000001")}
+    immediates = {'addi': (i_inst, '010000'), 'subi': (i_inst, '010011'), 'ori': (i_inst, '010010'),
+                  'andi': (i_inst, '010001')}
+    dm = {"lw": (dm_inst, "010100"), "sw": (dm_inst, "011000")}
     opcode_dict.update(immediates)
     opcode_dict.update(dm)
     return opcode_dict
