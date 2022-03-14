@@ -4,12 +4,16 @@
 import sys
 
 #from helperfunctions import *
-NOOP = "10000000000000000"
+NOOP = "0100000000000000000"
 ADDR_SIZE = 4
 MEM_SIZE = 8
+PREAMBLE_LENGTH = 1
+REGISTER_DICT = {"0":"0000", "s0":"0001", "s1": "0010", "s2": "0011","s3":"0100", "t0":"0101", "t1":"0110", "t2":"0111",
+                 "t3": "1000", "a0":"1001", "a1":"1010", "a2":"1011", "v0":"1100", "v1":"1101", "ra":"1110", "sp":"1111"}
 
-def twosCom(dec, length):
+def twosCom(dec, length, add = 0):
     dec = int(dec)
+    dec += add
     if dec < 0:
         max_num = 2 ** length - 1
         dec = max_num - (-dec - 1)
@@ -26,6 +30,9 @@ def twosCom(dec, length):
 def getBinRegister(reg, length):
     # converting decimal to binary
     # and removing the prefix(0b)
+    if reg in REGISTER_DICT:
+        return REGISTER_DICT[reg]
+
     reg = int(reg)
     binary = bin(reg).replace("0b", "")
 
@@ -94,9 +101,10 @@ def jump(operation, operands, opcode_dict):
     outstring = ""
     outstring += opcode_dict[operation][1]
 
-    outstring += twosCom(operands[0], MEM_SIZE)
+    outstring += twosCom(operands[0], MEM_SIZE, add= PREAMBLE_LENGTH)
     outstring += twosCom(0, ADDR_SIZE)
     return outstring
+
 
 def branch(operation, operands, opcode_dict):
     outstring = opcode_dict[operation][1]
@@ -116,11 +124,13 @@ def branch(operation, operands, opcode_dict):
 
     return outstring
 
+
 def ConvertAssemblyToMachineCode(inline, opcode_dict):
     '''given a string corresponding to a line of assembly,
     strip out all the comments, parse it, and convert it into
     a string of binary values'''
     outstring = ""
+    inline = inline.strip()
     if inline.find('#') != -1:
         inline = inline[0:inline.find('#')]  # get rid of anything after a comment
     if inline != '':
@@ -131,13 +141,31 @@ def ConvertAssemblyToMachineCode(inline, opcode_dict):
         outstring = opcode_dict[operation][0](operation, operands, opcode_dict)
     return outstring
 
+
+def preamble(opcode_dict):
+    """
+    return the list of instructions that are run every program
+    :param opcode_dict: dictionary of opcodes and coresponding instructions
+    :return: a list of machine code to run each program
+    """
+    codes = []
+    stack = "addi $sp $0 -1" # set sp to last mem address
+    codes.append(binToHex(ConvertAssemblyToMachineCode(stack, opcode_dict)))
+    return codes
+
+
+def binToHex(bin):
+    dec = int(bin, 2)
+    hexa = hex(dec)
+    hexa = hexa.replace("0x", "")
+    return hexa
 def opcodes():
     opcode_dict = {'add': (r_inst, '0000000'), "sub": (r_inst, "0000011"), "or": (r_inst, "0000010"),
                    "and": (r_inst, "0000001")}
     immediates = {'addi': (i_inst, '0100000'), 'subi': (i_inst, '0100011'), 'ori': (i_inst, '0100010'),
                   'andi': (i_inst, '010001')}
     dm = {"lw": (dm_inst, "0101000"), "sw": (dm_inst, "0110000")}
-    branches = {"j" : (jump, "1000000"), "beq" : (branch, "1000100"), "bne" : (branch, "1000101")}
+    branches = {"j" : (jump, "1000000"), "beq" : (branch, "1000100"), "bne" : (branch, "1000101"), "blt" : (branch, "1000110"), "bge" : (branch, "1000111")}
     opcode_dict.update(immediates)
     opcode_dict.update(dm)
     opcode_dict.update(branches)
@@ -148,7 +176,7 @@ def AssemblyToHex(infilename, outfilename):
     then save that machinecode to an outputfile'''
 
     opcode_dict = opcodes()
-    outlines = []
+    outlines = preamble(opcode_dict)
     header = "v2.0 raw\n"
     with open(infilename) as f:
         lines = [line.rstrip() for line in f.readlines()]  # get rid of \n whitespace at end of line
@@ -159,10 +187,7 @@ def AssemblyToHex(infilename, outfilename):
         for curline in lines:
             outstring = ConvertAssemblyToMachineCode(curline, opcode_dict)
             if outstring != '':
-                dec = int(outstring, 2)
-                hexa = hex(dec)
-                hexa = hexa.replace("0x", "")
-                outlines.append(hexa)
+                outlines.append(binToHex(outstring))
 
     f.close()
 
