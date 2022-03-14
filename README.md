@@ -14,7 +14,7 @@ python Assembler.py "ASSEMBLY_FILE" "HEX_FILE"
 Assembly code can be assembled to hex values that can be feed into the processor by running Assembler.py in the command line and passing in an .asm and .hex file. The program in the .asm will be tranlated to machine code and placed in the .hex file to be read by the processor. 
 
 ### Registers 
-Regiserted can be asscessed either with by number of label
+Registers can be accessed either through the number or by label. 
 
 | Register | Label | Use |
 | ------------- | ------------- | ------------- |
@@ -92,7 +92,7 @@ Load word (lw) takes loads a word (8 bits) into the destination register, by add
 lw $dest offset($ba)
 ```` 
 
-Similarly, store word (sw) takea a word from a source register and stores into data memory at the address speficied by a base register and an offset value. Store words take the following format. 
+Similarly, store word (sw) takes a word from a source register and stores it into data memory at the address specified by a base register and an offset value. Store words take the following format.
 
 Example: 
 ````
@@ -114,7 +114,7 @@ Branch instructions take the following format:
 beq $ra1 $ra2 OFF # skip to instruction + OFF if $ra1 == $ra2 
 ````
 
-Branch instructions move the program counter by the amount speficied by OFF, meaning that a branch with offset 1 will move the program forward the same as what would occur had a branch not taken place. The following branch instructions are available: 
+Branch instructions move the program counter by the amount specified by OFF, meaning that a branch with offset 1 will move the program forward the same as what would occur had a branch not taken place. The following branch instructions are available:
 
 beq: branch if the two registers are equal 
 
