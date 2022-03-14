@@ -117,8 +117,11 @@ beq $ra1 $ra2 OFF # skip to instruction + OFF if $ra1 == $ra2
 Branch instructions move the program counter by the amount speficied by OFF, meaning that a branch with offset 1 will move the program forward the same as what would occur had a branch not taken place. The following branch instructions are available: 
 
 beq: branch if the two registers are equal 
+
 bne: branch if the two registers are not equal 
+
 blt: branch if the first register is less than the second 
+
 bge: branch if the first register is greater than or equal to the second 
 
 
