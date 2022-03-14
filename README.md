@@ -124,6 +124,23 @@ blt: branch if the first register is less than the second
 
 bge: branch if the first register is greater than or equal to the second 
 
+### The Stack 
+Assembler.py will set the initial value of $sp to the last value of data memory (jump instructions are adjusted to account for this initial instruction, so you can write j instructions as if the first line in the assembly file is instruction 0). 
+
+You can push values on to the stack with the following format: 
+
+````
+Addi $sp $sp -1 
+sW $reg 0($sp) 
+ ````
+
+You can pop values from the stack with the following format: 
+
+````
+LW $dest 0($sp) 
+Addi $sp $sp 1
+````
+
 
 ## Examples 
 Example assembly code and correspodning hex files can be found in the Tests folder. 
