@@ -44,9 +44,13 @@ add $dest $ra1 $ra2
 ```` 
  
 where the computation done on $ra1 and $ra2 will be placed in $dest. The following r instructions are available.
+
 add: add the contents of $ra1 and $ra2
+
 sub: subtract the contents of $ra2 from $ra1
+
 or: compute logical or on $ra1 and $ra2
+
 and: compute logical and on $ra1 and $ra2
  
 Example:
@@ -54,18 +58,26 @@ Example:
 add $1 $1 $2 # set $1 to $1 + $2 
 ````
  
-I instructions
+### I instructions
 I instructions are written in the following format:
+````
 addi $dest $ra1 imm
+```` 
  
 where the computation done on $ra1 and the value imm will be placed in $dest. The following i instructions are available. The value imm can only be an integer from -8 to 7. 
 
 addi: add the contents of $ra1 and the value imm
+
 subi: subtract imm from $ra1
+
 ori: compute logical or on $ra1 and the value imm
+
 andi: compute logican and on $ra1 and the value imm
+
 Sll: shift the value of $ra1 to the left by imm bits
+
 Slr: shift the value of $ra2 to the right by imm bits  
+
 Example:
 ````
 addi $1 $0 1 # set 1 to $0 + 1 
@@ -74,6 +86,7 @@ addi $1 $0 1 # set 1 to $0 + 1
 ### Data Memory
 Values can be loaded and stored into memory with the lw and sw commands.
 Load word (lw) takes loads a word (8 bits) into the destination register, by adding the value within a base register to an offset value. Load words take the following format.
+
 ````
 lw $dest offset($ba)
 ````
@@ -87,7 +100,9 @@ LW $3 1($0) # load the value at data memory $0 + 1 into $1
  
 ### Jump Instructions
 You can jump to any line of instruction memory with the instruction:
+````
 j n # jump to the (n + 1)th instruction  
+ ````
  
 Instructions start at 0, and comments and empty spaces are not counted. Any instructions added in the assembler are adjusted for, meaning j 0 will go to the first instruction in the .asm file, not the first instruction the processor runs. 
 
@@ -98,9 +113,13 @@ beq $ra1 $ra2 OFF # skip to current instruction + OFF if $ra1 == $ra2
 ````
  
 Branch instructions move the program counter by the amount specified by OFF, meaning that a branch with offset 1 will move the program forward the same as what would occur had a branch not taken place. The following branch instructions are available:
+
 beq: branch if the two registers are equal
+
 bne: branch if the two registers are not equal
+
 blt: branch if the first register is less than the second
+
 bge: branch if the first register is greater than or equal to the second
  
 ### The Stack 
@@ -108,8 +127,8 @@ Assembler.py will set the initial value of $sp to the last value of data memory 
 
 You can push values on to the stack with the following format: 
 ````
-	Addi $sp $sp -1 
-	sW $reg 0($sp) 
+Addi $sp $sp -1 
+sW $reg 0($sp) 
  ````
 
 You can pop values from the stack with the following format: 
