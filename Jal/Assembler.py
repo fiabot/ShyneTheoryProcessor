@@ -6,6 +6,7 @@ import sys
 #from helperfunctions import *
 NOOP = "0100000000000000000"
 ADDR_SIZE = 4
+MAX_IMM = 2 ** ADDR_SIZE
 MEM_SIZE = 8
 PREAMBLE_LENGTH = 1
 REGISTER_DICT = {"0":"0000", "s0":"0001", "s1": "0010", "s2": "0011","s3":"0100", "t0":"0101", "t1":"0110", "t2":"0111",
@@ -45,7 +46,7 @@ def getBinRegister(reg, length):
     return binary
 
 
-def r_inst(operation, operands, opcode_dict, line):
+def r_inst(operation, operands, opcode_dict, line, labels):
     outstring = ""
     outstring += opcode_dict[operation][1]
     long_str = " ".join(operands)
@@ -60,7 +61,7 @@ def r_inst(operation, operands, opcode_dict, line):
     return outstring
 
 
-def i_inst(operation, operands, opcode_dict, line):
+def i_inst(operation, operands, opcode_dict, line, labels):
     outstring = ""
     outstring += opcode_dict[operation][1]
     long_str = " ".join(operands)
@@ -76,7 +77,7 @@ def i_inst(operation, operands, opcode_dict, line):
     return outstring
 
 
-def dm_inst(operation, operands, opcode_dict, line):
+def dm_inst(operation, operands, opcode_dict, line, labels):
     outstring = ""
     outstring += opcode_dict[operation][1]
     if operands[0][0] == '$':
@@ -98,16 +99,21 @@ def dm_inst(operation, operands, opcode_dict, line):
     return outstring
 
 
-def jump(operation, operands, opcode_dict, line):
+def jump(operation, operands, opcode_dict, line, labels):
     outstring = ""
     outstring += opcode_dict[operation][1]
 
-    outstring += twosCom(operands[0], MEM_SIZE, add= PREAMBLE_LENGTH)
+    # if jumping to label
+    dest = operands[0]
+    if dest in labels:
+        dest = labels[dest]
+
+    outstring += twosCom(dest, MEM_SIZE, add= PREAMBLE_LENGTH)
     outstring += twosCom(0, ADDR_SIZE) # last address not used in jump instructions
     return outstring
 
 
-def branch(operation, operands, opcode_dict, line):
+def branch(operation, operands, opcode_dict, line, labels):
     outstring = opcode_dict[operation][1]
 
     long_str = " ".join(operands)
@@ -115,7 +121,10 @@ def branch(operation, operands, opcode_dict, line):
         print("SYNTAX ERROR AT LINE", line - PREAMBLE_LENGTH)
         return NOOP
     # off
-    outstring += twosCom(operands[2], ADDR_SIZE)
+    off = operands[2]
+    if off in labels: # if branching to label
+        off = (labels[off] + PREAMBLE_LENGTH) - line
+    outstring += twosCom(off, ADDR_SIZE)
 
     # ra1
     outstring += getBinRegister(operands[0][1:], ADDR_SIZE)
@@ -125,13 +134,15 @@ def branch(operation, operands, opcode_dict, line):
 
     return outstring
 
-def jal(operation, operands, opcode_dict, line):
-    lw = "addi $ra $0 " + str(line + 2)
+def jal(operation, operands, line):
+    next_line = line + 3
+
+    lw1 = "addi $ra $0 " + str(line + 2)
     j = "j " + operands[0]
 
-    return [ConvertAssemblyToMachineCode(lw, opcode_dict, line), ConvertAssemblyToMachineCode(j, opcode_dict, line + 1)]
+    return [lw, j]
 
-def jr (operation, operands, opcode_dict, line):
+def jr (operation, operands, opcode_dict, line, labels):
     outstring = opcode_dict[operation][1]
 
     outstring += twosCom(0, ADDR_SIZE) # dest register not used
@@ -146,7 +157,47 @@ def jr (operation, operands, opcode_dict, line):
     return outstring
 
 
-def ConvertAssemblyToMachineCode(inline, opcode_dict, line):
+def make_label_dict(lines):
+    labels = {}
+    num = 0
+    for i in range(len(lines)):
+        line = lines[i]
+        line = line.strip()
+
+        label_end = line.find(":")
+        if label_end != -1:
+            label = line[:label_end]
+
+            labels[label] = num
+            line = line[label_end+1:]
+            lines[i] = line
+
+        # only increment line if it's not empty space
+        if line != "":
+            num += 1
+    return lines, labels
+
+def de_pseudo(lines, pseudo_dict):
+    new_lines = []
+    for line in lines:
+        outstring = ""
+        line = line.strip()
+        if line.find('#') != -1:
+            line = line[0:line.find('#')]  # get rid of anything after a comment
+        if line != '':
+            words = line.split()  # assuming syntax words are separated by space, not comma
+            operation = words[0]
+            operation = operation.lower()
+            operands = words[1:]
+            if operation in pseudo_dict:
+                new_lines += pseudo_dict[operation](operation, operands, len(new_lines) + PREAMBLE_LENGTH)
+            else:
+                new_lines.append(line)
+
+
+    return new_lines
+
+def ConvertAssemblyToMachineCode(inline, opcode_dict, line, labels):
     '''given a string corresponding to a line of assembly,
     strip out all the comments, parse it, and convert it into
     a string of binary values'''
@@ -159,7 +210,7 @@ def ConvertAssemblyToMachineCode(inline, opcode_dict, line):
         operation = words[0]
         operation = operation.lower()
         operands = words[1:]
-        outstring = opcode_dict[operation][0](operation, operands, opcode_dict, line)
+        outstring = opcode_dict[operation][0](operation, operands, opcode_dict, line, labels)
     return outstring
 
 
@@ -171,7 +222,7 @@ def preamble(opcode_dict):
     """
     codes = []
     stack = "addi $sp $0 -1" # set sp to last mem address
-    codes.append(binToHex(ConvertAssemblyToMachineCode(stack, opcode_dict, 0)))
+    codes.append(binToHex(ConvertAssemblyToMachineCode(stack, opcode_dict, 0, {})))
     return codes
 
 
@@ -188,26 +239,29 @@ def opcodes():
     immediates = {'addi': (i_inst, '0100000'), 'subi': (i_inst, '0100011'), 'ori': (i_inst, '0100010'),
                   'andi': (i_inst, '010001')}
     dm = {"lw": (dm_inst, "0101000"), "sw": (dm_inst, "0110000")}
-    branches = {"j" : (jump, "1000000"), "beq" : (branch, "1000100"), "bne" : (branch, "1000101"), "blt" : (branch, "1000110"), "bge" : (branch, "1000111")}
-    pseudo = {"jal": (jal, "*********"), "jr": (jr, "1100000")}
+    branches = {"j" : (jump, "1000000"), "beq" : (branch, "1000100"), "bne" : (branch, "1000101"), "blt" : (branch, "1000110"), "bge" : (branch, "1000111"), "jr": (jr, "1100000")}
+    pseudo = {"jal": jal}
     opcode_dict.update(immediates)
     opcode_dict.update(dm)
     opcode_dict.update(branches)
-    opcode_dict.update(pseudo)
-    return opcode_dict
+    return opcode_dict, pseudo
+
 
 def AssemblyToHex(infilename, outfilename):
     '''given an ascii assembly file , read it in line by line and convert each line of assembly to machine code
     then save that machinecode to an outputfile'''
 
-    opcode_dict = opcodes()
+    opcode_dict, pseudo = opcodes()
     outlines = preamble(opcode_dict)
     line = len(outlines)
     header = "v2.0 raw\n"
     with open(infilename) as f:
         lines = [line.rstrip() for line in f.readlines()]  # get rid of \n whitespace at end of line
+        lines = de_pseudo(lines, pseudo)
+        lines, labels = make_label_dict(lines)
+        print(lines, labels)
         for curline in lines:
-            outstring = ConvertAssemblyToMachineCode(curline, opcode_dict, line)
+            outstring = ConvertAssemblyToMachineCode(curline, opcode_dict, line, labels)
             if isinstance(outstring, list):
                 for inst in outstring:
                     outlines.append(binToHex(inst))
@@ -215,7 +269,6 @@ def AssemblyToHex(infilename, outfilename):
             elif outstring != '':
                 outlines.append(binToHex(outstring))
                 line += 1
-
     f.close()
 
     with open(outfilename, 'w') as of:
