@@ -1,10 +1,10 @@
 # ShyneTheoryProcessor
 8-bit processor 
 
-A bit bit processor cabable of addition, subtraction, and logic commands. 16 registers can be accessed with $0 - $15. There is capacity for 256 bytes in data memory and programs with up to 256 instructions. 
+A 8-bit processor cabable of addition, subtraction, logic commands, and nested function calls. 16 registers can be accessed with $0 - $15. There is capacity for 256 bytes in data memory and programs with up to 256 instructions. 
 
 ## How To Use 
-The full processor is located in the jump_branch folder. The processor itself is the jump_branch.circ file which can be loaded into logisim. Programs can be loaded as hex files into the instruction memory circuit. Once loaded, the program can be steped through by enabling instruction memory and giving the clock a rising clock edge. Assembly code can be translated to hex files by running Assembler.py in the command line with the following command. 
+The full processor is located in the shifting folder. The processor itself is the Shift.circ file which can be loaded into logisim. Programs can be loaded as hex files into the instruction memory circuit. Once loaded, the program can be steped through by enabling instruction memory and giving the clock a rising clock edge. Assembly code can be translated to hex files by running Assembler.py in the command line with the following command. 
 
 ````
 python Assembler.py "ASSEMBLY_FILE" "HEX_FILE"
@@ -31,13 +31,14 @@ $9 |$a0 | Argument
 $10 |$a1 | Argument
 $11 |$a2 | Argument
 $12 |$v1 | Return value 
-$13 |$v2 | Return value 
+$13 |$p | Pseudo code register
 $14 |$ra | Return address
 $15 |$sp | stack pointer
 
 ### Comments
 Anything following the hashtag (#) symbol is ignored by the assembler.
-R instructions
+
+### R instructions
 R instructions are written in the following format:
 ````
 add $dest $ra1 $ra2
